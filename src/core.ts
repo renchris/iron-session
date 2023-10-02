@@ -14,7 +14,7 @@ type ResponseType = Response | ServerResponse
  */
 export interface ICookieHandler {
   get: (name: string) => { name: string; value: string } | undefined
-  set: (name: string, value: string) => void
+  set: (name: string, value: string, cookieOptions?: CookieSerializeOptions) => void
 }
 
 export interface IronSessionOptions {
@@ -162,11 +162,15 @@ function setCookie(res: ResponseType, cookieValue: string): void {
   ;(res as ServerResponse).setHeader('set-cookie', [...existingSetCookie, cookieValue])
 }
 
-function setServerActionCookie(cookieValue: string, cookieHandler: ICookieHandler): void {
+function setServerActionCookie(
+  cookieValue: string,
+  cookieHandler: ICookieHandler,
+  cookieOptions?: CookieSerializeOptions
+): void {
   const extracted = extractCookieComponents(cookieValue)
   if (extracted !== null) {
     const { cookieName, cookieData } = extracted
-    cookieHandler.set(cookieName, cookieData)
+    cookieHandler.set(cookieName, cookieData, cookieOptions)
   }
 }
 
@@ -405,7 +409,7 @@ export function createGetServerActionIronSession(
             )
           }
 
-          setServerActionCookie(cookieValue, cookieHandler)
+          setServerActionCookie(cookieValue, cookieHandler, mergedOptions.cookieOptions)
         },
       },
 
